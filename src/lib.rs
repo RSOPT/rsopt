@@ -6,3 +6,14 @@
 #![no_std]
 #![deny(warnings)]
 #![deny(missing_docs)]
+
+mod program;
+mod solution;
+mod status;
+
+pub use program::MathematicalProgram;
+pub use solution::Solution;
+pub use status::Status;
+
+/// Floating-point precision used for the solver.
+pub type Float = f64;

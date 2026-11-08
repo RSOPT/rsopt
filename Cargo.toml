@@ -8,3 +8,4 @@ name = "rsopt"
 path = "src/lib.rs"
 
 [dependencies]
+nalgebra = { version = "0.35.0", default-features = false, features = ["macros", "nalgebra-macros"] }
