@@ -8,6 +8,7 @@
 #![deny(missing_docs)]
 
 mod classes;
+mod config;
 mod program;
 mod solution;
 mod status;
@@ -15,6 +16,7 @@ mod status;
 pub use classes::{
     qp,
 };
+pub use config::SolverConfig;
 pub use program::MathematicalProgram;
 pub use solution::Solution;
 pub use status::Status;

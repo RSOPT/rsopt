@@ -12,6 +12,9 @@ use nalgebra::SVector;
 /// Program solutions are returned by solvers.  They contain all solution metadata,
 /// including program status as well as primal and dual variables, if the problem
 /// was solved to optimality.
+/// 
+/// This solution has `N` primal variables and `K` dual variables (assuming that the
+/// problem was solved to optimality).
 pub struct Solution<const N: usize, const K: usize> {
     /// Program status.
     pub status: Status,

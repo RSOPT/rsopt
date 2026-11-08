@@ -3,8 +3,9 @@
 %% FORMATTING IMPORTS
 \usepackage[margin=1.0in]{geometry}
 \usepackage{hyperref}
-\usepackage{cmbright}
 \usepackage{graphicx}
+\usepackage{amsmath}
+\usepackage{amssymb}
 
 \begin{document}
 	\begin{titlepage}
@@ -41,9 +42,23 @@
 	
 	\chapter{Quadratic Programs}
 	
-	TODO
+	This chapter covers various forms of \textbf{quadratic programs} supported by the RSOPT project.  This document defines quadratic programs as convex programs whose objective has a constant Hessian with no negative eigenvalues.
 	
 	\section{Unconstrained Quadratic Programs}
+	
+	\textbf{Unconstrained quadratic programs} (\texttt{UnconstrainedQuadraticProgram}) are convex programs of the form
+	
+	\begin{equation}
+		\min_{x \in \mathbb{R}^n} \frac12 x^\top A x + b^\top x
+	\end{equation}
+	
+	where \( A \in \mathbb{R}^{n \times n} \), \( A \succeq 0 \), and \( b \in \mathbb{R}^n \).  The relevant stationarity condition is
+	
+	\begin{equation}
+		Ax^\star + b = 0 \Leftrightarrow x^\star = -A^{-1} b.
+	\end{equation}
+	
+	We solve unconstrained quadratic programs using the \textbf{conjugate gradient} method.
 	
 	TODO
 \end{document}

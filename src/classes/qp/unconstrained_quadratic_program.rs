@@ -5,7 +5,7 @@
 
 use nalgebra::{SMatrix, SVector};
 
-use crate::{Float, MathematicalProgram, Solution};
+use crate::{Float, MathematicalProgram, Solution, SolverConfig};
 
 /// Unconstrained quadratic program.
 /// 
@@ -21,7 +21,7 @@ pub struct UnconstrainedQuadraticProgram<const N: usize> {
 }
 
 impl<const N: usize> MathematicalProgram<N, 0> for UnconstrainedQuadraticProgram<N> {
-    fn solve(&self) -> Solution<N, 0> {
+    fn solve(&self, _config: SolverConfig) -> Solution<N, 0> {
         todo!()
     }
 }
