@@ -7,10 +7,14 @@
 #![deny(warnings)]
 #![deny(missing_docs)]
 
+mod classes;
 mod program;
 mod solution;
 mod status;
 
+pub use classes::{
+    qp,
+};
 pub use program::MathematicalProgram;
 pub use solution::Solution;
 pub use status::Status;
