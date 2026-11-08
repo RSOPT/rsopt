@@ -10,6 +10,7 @@
 **/*.out
 **/*.log
 **/*.aux
+**/*.toc
 
 # Python virtual environment and cache files
 **/__pycache__
