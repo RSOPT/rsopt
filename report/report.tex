@@ -6,6 +6,8 @@
 \usepackage{graphicx}
 \usepackage{amsmath}
 \usepackage{amssymb}
+\usepackage{algorithm}
+\usepackage{algpseudocode}
 
 \begin{document}
 	\begin{titlepage}
@@ -32,11 +34,23 @@
 	
 	\tableofcontents
 	
-	\chapter{Introduction}
+	\part{Introduction}
+	
+	\chapter{About RSOPT}
+	
+	TODO
+	
+	\chapter{Convex Optimization}
 	
 	TODO
 
 	\chapter{Software Concept}
+	
+	TODO
+	
+	\part{Convex Programs}
+	
+	\chapter{Linear Programs}
 	
 	TODO
 	
@@ -58,7 +72,89 @@
 		Ax^\star + b = 0 \Leftrightarrow x^\star = -A^{-1} b.
 	\end{equation}
 	
-	We solve unconstrained quadratic programs using the \textbf{conjugate gradient} method.
+	We solve unconstrained quadratic programs using the \textbf{conjugate gradient} (CG) method.
+	
+	\paragraph{Definition.} Two vectors \( p_i \) and \( p_j \) are \textit{conjugate} with respect to \( A \) if \( p_i^\top A p_j = 0 \).
+	\vspace{0.4cm}
+	
+	CG solves an \( n \)-dimensional system in at most \( n \) iterations by selecting conjugate search directions.  The gradient of the objective at iterate \( x_k \) is
+	
+	\begin{equation}
+		\nabla J_k = A x_k + b .
+	\end{equation}
+	
+	CG selects \( x_0 := 0 \) and \( p_0 := \nabla J_0 = b \) as the first search direction.  Subsequent search directions \( p_k \) (\( k > 0 \)) must be conjugate with all preceding search directions with respect to \( A \).  We write the recurrence as
+	
+	\begin{equation}
+		p_{k+1} = A x_{k+1} + b + \sum_{i=0}^k \beta_i p_i
+	\end{equation}
+	
+	and constrain \( \beta_i \) using the definition of conjugate vectors.  For all \( j = 0, 1, \cdots k \), we have
+	
+	\begin{equation}
+		(A x_{k+1} + b + \sum_{i=0}^k \beta_i p_i)^\top A p_j = 0.
+	\end{equation}
+	
+	Expanding gives us
+	
+	\begin{equation}
+		x_{k+1}^\top A^\top A p_j + b^\top A p_j + \sum_{i=0}^k \beta_i p_i^\top A p_j = 0 .
+	\end{equation}
+	
+	Notice that, by our ``inductive hypothesis", \( p_0, p_1, \cdots p_{k-1} \) are already pairwise conjugate with respect to \( A \).  We can now focus only on the case \( j = k \) and take all other \( \beta_i = 0 \).
+	
+	\begin{equation}
+		x_{k+1}^\top A^\top A p_k + b^\top A p_k + \beta_k p_k^\top A p_k = 0 .
+	\end{equation}
+	
+	This gives us a closed form for \( \beta_k \).
+	
+	\begin{equation}
+		\beta_k = -\frac{(\nabla J_{k+1})^\top A p_k}{p_k^\top A p_k}
+	\end{equation}
+	
+	Therefore, the step direction \( p_k \) for \( k > 0 \) is given by
+	
+	\begin{equation}
+		\boxed{p_{k+1} = \nabla J_{k+1} - \frac{(\nabla J_{k+1})^\top A p_k}{p_k^\top A p_k} p_k. }
+	\end{equation}
+	
+	After selecting the step direction, it is necessary to select the step size \( \alpha_k \).  We select \( \alpha_k \) according to the QP
+	
+	\begin{equation}
+		\min_{\alpha_k \in \mathbb{R}} \frac12 (x_k + \alpha_k p_k)^\top A (x_k + \alpha_k p_k) + b^\top (x_k + \alpha_k p_k)
+	\end{equation}
+	
+	Expanding the objective and dropping all terms not dependent on \( \alpha \), we have
+	
+	\begin{equation}
+		\frac{d}{d\alpha_k} \left[ \alpha_k p_k^\top A x_k + \frac12 \alpha_k^2 p_k^\top A p_k + \alpha_k b^\top p_k \right] = 0.
+	\end{equation}
+	
+	We find that \( \alpha_k \) is also determined analytically as
+	
+	\begin{equation}
+		\boxed{\alpha_k = \frac{-(\nabla J_k)^\top p_k}{p_k^\top A p_k}. }
+	\end{equation}
+	
+	The complete CG algorithm is detailed in Algorithm \ref{alg:cg}.
+	
+	\begin{algorithm}[htbp!]
+		\caption{Conjugate Gradient}
+		\label{alg:cg}
+		\begin{algorithmic}[1]
+			\Require \( A, b \)
+			\State \( p_0 \gets b \)
+			\While { }
+			\EndWhile
+		\end{algorithmic}
+	\end{algorithm}
+	
+	\section{Equality-Constrained Quadratic Programs}
+	
+	TODO
+	
+	\section{Inequality-Constrained Quadratic Programs}
 	
 	TODO
 \end{document}
