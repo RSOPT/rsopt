@@ -20,7 +20,7 @@ pub struct UnconstrainedQuadraticProgram<const N: usize> {
 }
 
 impl<const N: usize> UnconstrainedQuadraticProgram<N> {
-    /// Construct this QP from a matrix and a vector.
+    /// Construct this QP from a matrix (`A`) and a vector (`b`).
     pub fn new(matrix: SMatrix<Float, N, N>, vector: SVector<Float, N>) -> Self {
         Self {
             matrix,

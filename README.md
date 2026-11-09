@@ -14,13 +14,13 @@ Currently, RSOPT can only be called from Rust.  We plan to develop Python bindin
 
 ### Calling RSOPT from Rust
 
-All optimization programs in RSOPT exist under the `rsopt::classes` namespace and implement the trait `MathematicalProgram`.  The trait `MathematicalProgram` dispatches the program to the relevant backend solver _at compile time_.  All solver backends require the `SolverConfig` object for necessary configuration.  Because `SolverConfig` implements trait `Default`, we strongly advise users to use `Default::default()` and adjust only if necessary.
+All optimization programs in RSOPT exist under the `rsopt` namespace and implement the trait `MathematicalProgram`.  The trait `MathematicalProgram` dispatches the program to the relevant backend solver _at compile time_.  All solver backends require the `SolverConfig` object for necessary configuration.  Because `SolverConfig` implements trait `Default`, we strongly advise users to use `Default::default()` and adjust only if necessary.
 
 For example, to solve an unconstrained QP, import the following.
 
 ```rust
 use rsopt::{
-    classes::qp::UnconstrainedQuadraticProgram,
+    qp::UnconstrainedQuadraticProgram,
     MathematicalProgram,
     SolverConfig,
 };
