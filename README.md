@@ -1,10 +1,10 @@
 # RSOPT
 
-![Rust](https://github.com/RSOPT/rsopt/actions/workflows/rust.yml/badge.svg)
-
 <p align="center">
 <img src="https://github.com/RSOPT/rsopt/blob/master/rsopt.png" alt="The stylized letters 'RSOPT' on a dark background." width="200" height="200">
 </p>
+
+![Rust](https://github.com/RSOPT/rsopt/actions/workflows/rust.yml/badge.svg)
 
 A simple, elegant convex optimization solver.  Powered by the Rust Programming Language.
 
@@ -38,7 +38,7 @@ Once a `MathematicalProgram` is constructed, you can solve it easily using the `
 let solution = qp.solve(SolverConfig::default());
 ```
 
-All `MathematicalProgram`s return a `Solution` struct, containing program status and all relevant primal or dual variables, when appropriate.  Refer to the project documentation for more details about solver configuration and the `Solution` struct.
+All instances of `MathematicalProgram` return a `Solution` struct, containing program status and all relevant primal or dual variables, when appropriate.  Refer to the project documentation for more details about solver configuration and the `Solution` struct.
 
 ## Building RSOPT
 
