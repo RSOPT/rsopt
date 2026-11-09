@@ -63,3 +63,27 @@ fn solve_trivial_3d_qp() {
     );
     assert!(solution.dual.is_none());
 }
+
+#[test]
+fn solve_2d_qp() {
+    // Specify parameters
+    let a = matrix![
+        2.0, -1.0;
+        -1.0, 2.0;
+    ];
+    let b = vector![ -4.0, 2.0 ];
+
+    // Construct and solve QP
+    let qp = UnconstrainedQuadraticProgram::<2>::new(
+        a, b
+    );    
+    let solution = qp.solve(SolverConfig::default());
+
+    // Check QP result
+    assert_eq!(solution.status, Status::Optimal);
+    assert_eq!(
+        solution.primal,
+        Some (vector![ 2.0, 0.0 ]),
+    );
+    assert!(solution.dual.is_none());
+}
