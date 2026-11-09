@@ -3,7 +3,7 @@
 //! 
 //! Program status enumeration.
 
-#[derive(Clone, Copy)]
+#[derive(PartialEq, Eq, Clone, Copy, Debug)]
 /// Program status enumeration.
 /// 
 /// Convex programs fall into three possible categories:
