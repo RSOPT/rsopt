@@ -1,6 +1,3 @@
-//! RSOPT
-//! Copyright (c) 2026- The RSOPT Project
-//! 
 //! Solver configuration abstraction.
 
 use core::default::Default;

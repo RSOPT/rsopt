@@ -1,6 +1,3 @@
-//! RSOPT
-//! Copyright (c) 2026- The RSOPT Project
-//! 
 //! Unconstrained quadratic program.
 
 use nalgebra::{SMatrix, SVector};
@@ -10,6 +7,8 @@ use crate::{Float, MathematicalProgram, Solution, SolverConfig, Status};
 /// Unconstrained quadratic program.
 /// 
 /// This implementation of unconstrained QP uses the conjugate gradient method.
+/// For more information on the conjugate gradient method, refer to the section
+/// titled "Unconstrained Quadratic Program" in the technical report.
 pub struct UnconstrainedQuadraticProgram<const N: usize> {
     #[allow(dead_code)]
     /// PSD matrix `A`.

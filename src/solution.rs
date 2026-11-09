@@ -1,6 +1,3 @@
-//! RSOPT
-//! Copyright (c) 2026- The RSOPT Project
-//! 
 //! Program solution abstraction.
 
 use crate::{Float, Status};

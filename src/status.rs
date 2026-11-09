@@ -1,6 +1,3 @@
-//! RSOPT
-//! Copyright (c) 2026- The RSOPT Project
-//! 
 //! Program status enumeration.
 
 #[derive(PartialEq, Eq, Clone, Copy, Debug)]

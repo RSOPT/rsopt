@@ -1,6 +1,3 @@
-//! RSOPT
-//! Copyright (c) 2026- The RSOPT Project
-//! 
 //! Mathematical program abstraction.
 
 use crate::{Solution, SolverConfig};
