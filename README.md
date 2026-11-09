@@ -24,7 +24,7 @@ use rsopt::{
 };
 ```
 
-You may then construct the program according to its unique constructor.  Various instances of `MathematicalProgram` require different parameters, so we intentionally do not define a unified solver interface.  For the unconstrained QP example,
+You may then construct the program according to its unique constructor.  Various instances of `MathematicalProgram` require different parameters, so we intentionally do not define a unified constructor interface.  For the unconstrained QP example,
 
 ```rust
 let qp = UnconstrainedQuadraticProgram::new(matrix, vector);
