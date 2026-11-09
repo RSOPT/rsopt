@@ -8,7 +8,7 @@ use crate::{Float, MathematicalProgram, Solution, SolverConfig, Status};
 /// 
 /// This implementation of unconstrained QP uses the conjugate gradient method.
 /// For more information on the conjugate gradient method, refer to the section
-/// titled "Unconstrained Quadratic Program" in the technical report.
+/// titled "Unconstrained Quadratic Programs" in the technical report.
 pub struct UnconstrainedQuadraticProgram<const N: usize> {
     #[allow(dead_code)]
     /// PSD matrix `A`.
