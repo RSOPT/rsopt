@@ -20,8 +20,8 @@ pub struct Solution<const N: usize, const K: usize> {
     pub status: Status,
 
     /// Primal variables.
-    pub primal: SVector<Float, N>,
+    pub primal: Option<SVector<Float, N>>,
 
     /// Dual variables.
-    pub dual: SVector<Float, K>,
+    pub dual: Option<SVector<Float, K>>,
 }

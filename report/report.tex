@@ -137,16 +137,31 @@
 		\boxed{\alpha_k = \frac{-(\nabla J_k)^\top p_k}{p_k^\top A p_k}. }
 	\end{equation}
 	
-	The complete CG algorithm is detailed in Algorithm \ref{alg:cg}.
+	The complete CG algorithm is detailed in Algorithm \ref{alg:cg}.  For two conjugate directions \( p_i \) and \( p_j \) with respect to \( A \), we can interpret this algorithm in terms of the eigendecomposition of \( A \).
+	
+	\begin{equation}
+		p_i^\top A p_j = p_i^\top S \Lambda S^\top p_j
+	\end{equation}
+	
+	We can interpret the algorithm as akin to taking orthogonal steps to minimize an objective of the form \( x^\top \Lambda x \), where \( \Lambda \) is a diagonal matrix containing the eigenvalues of \( A \).
 	
 	\begin{algorithm}[htbp!]
 		\caption{Conjugate Gradient}
 		\label{alg:cg}
 		\begin{algorithmic}[1]
 			\Require \( A, b \)
+			\State \( x_0 \gets 0 \)
 			\State \( p_0 \gets b \)
-			\While { }
-			\EndWhile
+			\State \( g_0 \gets b \)
+			\State \( \alpha_0 \gets -g_0^\top p_0 / p_0^\top A p_0 \)
+			\State \( x_1 \gets x_0 + \alpha_0 p_0 \)
+			\For{\( k = 1 \cdots n-1 \)}
+			\State \( g_k \gets Ax_k + b \)
+			\State \( p_k \gets g_k - (g_k^\top A p_{k-1}/p_{k-1}^\top A p_{k-1}) p_{k-1} \)
+			\State \( \alpha_k \gets -g_k^\top p_k / p_k^\top A p_k \)
+			\State \( x_{k+1} \gets x_k + \alpha_k p_k \)
+			\EndFor \\
+			\Return \( x_n \)
 		\end{algorithmic}
 	\end{algorithm}
 	
