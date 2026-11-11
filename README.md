@@ -12,7 +12,7 @@ A simple, elegant convex optimization solver.  Powered by the Rust Programming L
 
 The following programs are either currently supported (checked) or will be supported soon (unchecked).
 
-- [x] Unconstrained quadratic program (`qp`)
+- [x] Unconstrained quadratic program (`qp::UnconstrainedQuadraticProgram`)
 - [ ] Equality-constrained quadratic program (`qp`)
 - [ ] Inequality-constrained quadratic program (`qp`)
 - [ ] Linear program (`lp`)
