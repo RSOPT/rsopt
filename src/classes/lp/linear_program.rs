@@ -90,7 +90,7 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             let lambda_over_s = lambda.component_mul(&s_inverse);
 
             // Construct KKT residuals
-            let p: SVector<Float, N> = -c - a.transpose() * lambda;
+            let p: SVector<Float, N> = c - a.transpose() * lambda;
             let q: SVector<Float, E> = d - e * x;
             let r: SVector<Float, I> = mu * ones - lambda.component_mul(&s);
 
