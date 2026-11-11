@@ -92,7 +92,9 @@ cargo build --release
 
 The __documentation__ of the RSOPT solver provides information on software interfaces, abstractions, and relevant methods.  The documentation does not detail the mathematical details of RSOPT's implementation; please see the _technical report_ for information on the algorithms used.
 
-Currently, documentation is not available on the open Internet.  They will be published soon.  However, after cloning the repository, you may build the documentation locally using the following command.
+Documentation is available on the public Internet at [docs.rs/rsopt](https://docs.rs/rsopt).
+
+You can also build the documentation locally and view it in a web browser using the following command.
 
 ```bash
 cargo doc --open

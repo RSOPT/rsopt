@@ -58,6 +58,17 @@
 	
 	\chapter{Linear Programs}
 	
+	This chapter covers the RSOPT project's implementation of linear programs.  \textbf{Linear programs} (\texttt{LinearProgram<N, E, I>}) are convex programs of the form
+	
+	\begin{align}
+		\min_{x \in \mathbb{R}^n} \; & c^\top x \\
+		\text{subject to} \; & A x \succeq b \\
+		& E x = d \\
+		& x \succeq 0
+	\end{align}
+	
+	where \( c \in \mathbb{R}^n \), \( A \in \mathbb{R}^{i \times n} \), \( b \in \mathbb{R}^i \), \( E \in \mathbb{R}^{e \times n} \), and \( d \in \mathbb{R}^e \).  As of this writing, the RSOPT project implements only the \textbf{primal-dual interior point method} (PDIPM) for solving linear programs.  We acknowledge that the simplex method is a very common method for solving linear programs that converges very well in practice---however, we have selected PDIPM for its polynomial-time convergence guarantee.
+	
 	TODO
 	
 	\chapter{Quadratic Programs}
