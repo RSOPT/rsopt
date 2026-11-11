@@ -52,11 +52,23 @@ let solution = qp.solve(SolverConfig::default());
 
 All instances of `MathematicalProgram` return a `Solution` struct, containing program status and all relevant primal or dual variables, when appropriate.  Refer to the project documentation for more details about solver configuration and the `Solution` struct.
 
-## Building RSOPT
+## Building RSOPT from Source
 
 To build RSOPT, you will need an up-to-date installation of [Cargo](https://github.com/rust-lang/cargo).
 
 __Minimum Supported Rust Version__ (MSRV): __1.89.0__
+
+You have two options: download from the Rust package index (_recommended_) or clone this repository and build the library from source (for advanced configuration).
+
+### Installation from Package Index
+
+Simply add this library to another package's dependencies with the following command.
+
+```bash
+cargo add rsopt
+```
+
+### Installation from GitHub
 
 Clone this GitHub repository.
 
