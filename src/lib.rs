@@ -11,6 +11,7 @@ mod solution;
 mod status;
 
 pub use classes::{
+    lp,
     qp,
 };
 pub use config::SolverConfig;

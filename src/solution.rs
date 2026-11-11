@@ -10,15 +10,19 @@ use nalgebra::SVector;
 /// including program status as well as primal and dual variables, if the problem
 /// was solved to optimality.
 /// 
-/// This solution has `N` primal variables and `K` dual variables (assuming that the
-/// problem was solved to optimality).
-pub struct Solution<const N: usize, const K: usize> {
+/// This solution has `N` primal variables, `E` unconstrained dual variables, and
+/// `I` nonnegative dual variables (assuming that the problem was solved to
+/// optimality).
+pub struct Solution<const N: usize, const E: usize, const I: usize> {
     /// Program status.
     pub status: Status,
 
     /// Primal variables.
     pub primal: Option<SVector<Float, N>>,
 
-    /// Dual variables.
-    pub dual: Option<SVector<Float, K>>,
+    /// Unconstrained dual variables.
+    pub equality_dual: Option<SVector<Float, E>>,
+
+    /// Nonnegative dual variables.
+    pub inequality_dual: Option<SVector<Float, I>>,
 }
