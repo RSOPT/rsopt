@@ -3,7 +3,7 @@ name = "rsopt"
 description = "A simple, elegant convex optimization solver."
 license = "MIT"
 repository = "https://github.com/RSOPT/rsopt"
-version = "0.1.0"
+version = "0.0.1"
 edition = "2024"
 
 [lib]
