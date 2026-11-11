@@ -7,7 +7,7 @@ use crate::{Float, MathematicalProgram, Solution, SolverConfig, Status};
 /// Linear program.
 /// 
 /// The canonical linear program has equality constraints, inequality constraints,
-/// and requires all decision variables to be nonnegative.  Reference "Linear Program"
+/// and requires all decision variables to be nonnegative.  Reference "Linear Programs"
 /// in the RSOPT technical report for details.
 /// 
 /// This implementation uses the _primal-dual interior point method_ (PDIPM) to solve
