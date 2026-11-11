@@ -8,6 +8,18 @@
 
 A simple, elegant convex optimization solver.  Powered by the Rust Programming Language.
 
+## Supported Program Types
+
+The following programs are either currently supported (checked) or will be supported soon (unchecked).
+
+- [x] Unconstrained quadratic program (`qp`)
+- [ ] Equality-constrained quadratic program (`qp`)
+- [ ] Inequality-constrained quadratic program (`qp`)
+- [ ] Linear program (`lp`)
+- [ ] Second-order cone program (`socp`)
+- [ ] Semidefinite program (`sdp`)
+- [ ] Maximum determinant program (`maxdet`)
+
 ## Using RSOPT
 
 Currently, RSOPT can only be called from Rust.  We plan to develop Python bindings and a standalone binary for the optimizer in the future.  As of yet, no development schedule is available.  This repository will be updated to reflect these changes as they are available.
