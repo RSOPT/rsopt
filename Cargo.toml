@@ -1,5 +1,8 @@
 [package]
 name = "rsopt"
+description = "A simple, elegant convex optimization solver."
+license = "MIT"
+repository = "https://github.com/RSOPT/rsopt"
 version = "0.1.0"
 edition = "2024"
 
