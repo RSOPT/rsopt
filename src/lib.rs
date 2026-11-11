@@ -1,6 +1,6 @@
 //! Main library for RSOPT.
 
-#![no_std]
+// #![no_std]
 #![deny(warnings)]
 #![deny(missing_docs)]
 

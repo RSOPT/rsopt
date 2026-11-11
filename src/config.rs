@@ -9,12 +9,28 @@ use crate::Float;
 pub struct SolverConfig {
     /// Gradient tolerance of the primal objective.
     pub primal_gradient_tolerance: Float,    
+
+    /// Major iteration limit.
+    pub major_iteration_limit: usize,
+
+    /// Minor iteration limit.
+    pub minor_iteration_limit: usize,
+
+    /// Regularization coefficient.
+    pub regularization: Float,
+
+    /// Fraction-to-the-boundary coefficient.
+    pub boundary_coefficient: Float,
 }
 
 impl Default for SolverConfig {
     fn default() -> Self {
         Self {
             primal_gradient_tolerance: 1e-8,
+            major_iteration_limit: 15,
+            minor_iteration_limit: 10,
+            regularization: 1e-9,
+            boundary_coefficient: 0.995,
         }
     }
 }
