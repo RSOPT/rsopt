@@ -21,6 +21,9 @@ pub struct SolverConfig {
 
     /// Fraction-to-the-boundary coefficient.
     pub boundary_coefficient: Float,
+
+    /// Line search scaling fraction.
+    pub line_search_fraction: Float,
 }
 
 impl Default for SolverConfig {
@@ -31,6 +34,7 @@ impl Default for SolverConfig {
             minor_iteration_limit: 10,
             regularization: 1e-9,
             boundary_coefficient: 0.995,
+            line_search_fraction: 0.5,
         }
     }
 }

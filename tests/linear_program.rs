@@ -28,12 +28,12 @@ fn appxeq<const N: usize>(x: SVector<Float, N>, y: SVector<Float, N>) -> bool {
 #[test]
 fn solve_trivial_lp() {
     // Construct LP
-    let lp = LinearProgram::<2, 0, 2>::new(
-        vector![1.0, 1.0],
+    let lp = LinearProgram::<2, 0, 0>::new(
+        vector![-1.0, -1.0],
         SMatrix::<Float, 0, 2>::zeros(),
         SVector::<Float, 0>::zeros(),
-        matrix![-1.0, 0.0; 0.0, -1.0],        
-        vector![0.0, 0.0],
+        SMatrix::<Float, 0, 2>::zeros(),
+        SVector::<Float, 0>::zeros(),
     );
 
     // Define configuration
@@ -42,6 +42,8 @@ fn solve_trivial_lp() {
     // Solve
     let result = lp.solve(config);
 
+    assert_eq!(result.status, Status::Optimal);
+    println!("{:#?}", result.primal);
     assert!(result.primal.is_some());
     assert!(appxeq(result.primal.unwrap(), vector![0.0, 0.0]));
 }
@@ -49,12 +51,12 @@ fn solve_trivial_lp() {
 #[test]
 fn solve_2d_lp() {
     // Construct LP
-    let lp = LinearProgram::<2, 0, 1>::new(
-        vector![-2.0, 0.0],
+    let lp = LinearProgram::<2, 0, 2>::new(
+        vector![-1.0, -1.0],
         SMatrix::<Float, 0, 2>::zeros(),
         SVector::<Float, 0>::zeros(),
-        matrix![1.0, 1.0],        
-        vector![1.0],
+        matrix![1.0, 2.0; 2.0, 1.0],
+        vector![2.0, 2.0],
     );
 
     // Define configuration
@@ -63,6 +65,7 @@ fn solve_2d_lp() {
     // Solve
     let result = lp.solve(config);
 
+    assert_eq!(result.status, Status::Optimal);
     assert!(result.primal.is_some());
-    assert!(appxeq(result.primal.unwrap(), vector![1.0, 0.0]));
+    assert!(appxeq(result.primal.unwrap(), vector![2.0/3.0, 2.0/3.0]));
 }

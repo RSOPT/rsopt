@@ -86,7 +86,7 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             let s = a * x - b;
 
             // Compute divisions
-            let s_inverse: SVector<Float, I> = ones.component_div(&s);
+            let s_inverse: SVector<Float, I> = ones.component_div(&(s + config.regularization * ones));
             let lambda_over_s = lambda.component_mul(&s_inverse);
 
             // Construct KKT residuals
@@ -118,7 +118,7 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             println!("dx = {:#?}", dx);
             println!("dlambda = {:#?}", dlambda);
 
-            // Calculate update sizes
+            // Calculate maximum update sizes
             let tau = config.boundary_coefficient;
             let primal_alphas = -tau * x.component_div(&dx);
             let dual_alphas = -tau * lambda.component_div(&dlambda);
@@ -128,20 +128,73 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
                     primal_alpha = *a;
                 }
             }
+            for (row, val) in a.row_iter().zip(&b) {
+                let row: SVector<Float, N> = row.transpose();
+                let a = -tau * (row.dot(&x) - val) / row.dot(&dx);
+                if a > 0.0 && a < primal_alpha {
+                    primal_alpha = a;
+                }
+            }
             let mut dual_alpha = 1.0;
             for a in &dual_alphas {
                 if *a > 0.0 && *a < dual_alpha {
                     dual_alpha = *a;
                 }
             }
-            println!("primal a = {:#?}", primal_alphas);
-            println!("dual a = {:#?}", dual_alphas);
-
             println!("primal a = {:.6}", primal_alpha);
             println!("dual a = {:.6}", dual_alpha);
 
-            x += primal_alpha * dx;
-            lambda += dual_alpha * dlambda;
+            // Perform primal line search
+            let mut ls_flag = false;
+            for _ in 0..config.minor_iteration_limit {
+                let new_x = x + primal_alpha * dx;
+
+                // Check nonnegativity
+                let check_sign = new_x.min() >= 0.0;
+                println!("check sign {}", check_sign);
+
+                // Check user-specified inequality constraints
+                let s = a * new_x - b;
+                let check_ieq = s.min() >= 0.0;
+
+                if check_sign && check_ieq {
+                    ls_flag = true;
+                    break;
+                } else {
+                    primal_alpha *= config.line_search_fraction;
+                }
+            }
+            if ls_flag {
+                x += primal_alpha * dx;
+            } else {
+                // We're right up against a constraint
+                break;
+            }
+
+            // Perform dual line search
+            let mut ls_flag = false;
+            for _ in 0..config.minor_iteration_limit {
+                let new_lambda = lambda + dual_alpha * dlambda;
+
+                // Check nonnegativity
+                let check_sign = new_lambda.min() >= 0.0;
+
+                if check_sign {
+                    ls_flag = true;
+                    break;
+                } else {
+                    dual_alpha *= config.line_search_fraction;
+                }
+            }
+            if ls_flag {
+                lambda += dual_alpha * dlambda;
+            } else {
+                // TODO what does this mean?
+                // LMs are trying to go negative
+                // obviously don't let them
+                // but is this healthy or does it indicate feasibility issues?
+                todo!()
+            }
 
             println!("x = {:#?}", x);
             println!("lambda = {:#?}", lambda);
@@ -154,7 +207,7 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
         }
 
         Solution {
-            status: Status::Infeasible,
+            status: Status::Optimal,
             primal: Some (x),
             equality_dual: Some (eta),
             inequality_dual: Some (lambda),
