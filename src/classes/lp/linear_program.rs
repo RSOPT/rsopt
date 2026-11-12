@@ -81,6 +81,9 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
         x.fill(1.0);
         lambda.fill(1.0);
 
+        // Last primal update L1 norm
+        let mut last_primal_update_norm: Float = 1.0;
+
         for _ in 0..config.major_iteration_limit {
             // Inequality residual
             let s = a * x - b;
@@ -196,13 +199,20 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             // Update barrier parameter
             let duality_gap = (a * x - b).dot(&lambda) / (N as Float);
             mu = 0.5 * duality_gap;
+
+            // Save L1 norm of update
+            last_primal_update_norm = primal_alpha * dx.abs().max();
         }
 
-        Solution {
-            status: Status::Optimal,
-            primal: Some (x),
-            equality_dual: Some (eta),
-            inequality_dual: Some (lambda),
+        if last_primal_update_norm < config.primal_update_norm_threshold {
+            Solution {
+                status: Status::Optimal,
+                primal: Some (x),
+                equality_dual: Some (eta),
+                inequality_dual: Some (lambda),
+            }
+        } else {
+            Solution::unbounded()
         }
     }
 }
