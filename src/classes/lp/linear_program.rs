@@ -124,11 +124,13 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             let dual_alphas = -tau * lambda.component_div(&dlambda);
             let mut primal_alpha = 1.0;
             for a in &primal_alphas {
+                // Check that `x` will not go negative
                 if *a > 0.0 && *a < primal_alpha {
                     primal_alpha = *a;
                 }
             }
             for (row, val) in a.row_iter().zip(&b) {
+                // Check that `Ax - b` will not go negative
                 let row: SVector<Float, N> = row.transpose();
                 let a = -tau * (row.dot(&x) - val) / row.dot(&dx);
                 if a > 0.0 && a < primal_alpha {
@@ -137,6 +139,7 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             }
             let mut dual_alpha = 1.0;
             for a in &dual_alphas {
+                // Check that `lambda` will not go negative
                 if *a > 0.0 && *a < dual_alpha {
                     dual_alpha = *a;
                 }
