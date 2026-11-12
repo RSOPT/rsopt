@@ -97,7 +97,6 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             // Intermediate "helper" matrix
             // TODO fix unwrap
             let z: SMatrix<Float, N, N> = a.transpose() * SMatrix::from_diagonal(&lambda_over_s) * a;
-            println!("z = {:#?}", z);
             let reg = config.regularization * SMatrix::<Float, N, N>::identity();
             let z_inverse = (z + reg).try_inverse().unwrap();
 
@@ -105,18 +104,19 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             let y: SVector<Float, N> = a.transpose() * SMatrix::from_diagonal(&s_inverse) * r;
 
             // Update dual
-            // TODO fix unwrap
             let e_zinv = e * z_inverse;
-            eta = (e_zinv * e.transpose()).try_inverse().unwrap() * (q + e_zinv * (p - y));
+            if let Some (e_zinv_e) = (e_zinv * e.transpose()).try_inverse() {
+                eta = e_zinv_e * (q + e_zinv * (p - y));
+            } else {
+                // This problem is infeasible (is this biconditional?)
+                return Solution::infeasible();
+            }
 
             // Calculate primal update direction
             let dx = z_inverse * (e.transpose() * eta + y - p);
 
             // Calculate dual update direction
             let dlambda = SMatrix::from_diagonal(&s_inverse) * (r - lambda.component_mul(&(a * x)));
-
-            println!("dx = {:#?}", dx);
-            println!("dlambda = {:#?}", dlambda);
 
             // Calculate maximum update sizes
             let tau = config.boundary_coefficient;
@@ -144,8 +144,6 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
                     dual_alpha = *a;
                 }
             }
-            println!("primal a = {:.6}", primal_alpha);
-            println!("dual a = {:.6}", dual_alpha);
 
             // Perform primal line search
             let mut ls_flag = false;
@@ -154,7 +152,6 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
 
                 // Check nonnegativity
                 let check_sign = new_x.min() >= 0.0;
-                println!("check sign {}", check_sign);
 
                 // Check user-specified inequality constraints
                 let s = a * new_x - b;
@@ -192,21 +189,13 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             if ls_flag {
                 lambda += dual_alpha * dlambda;
             } else {
-                // TODO what does this mean?
-                // LMs are trying to go negative
-                // obviously don't let them
-                // but is this healthy or does it indicate feasibility issues?
-                todo!()
+                // TODO is this the right behavior?
+                break;
             }
-
-            println!("x = {:#?}", x);
-            println!("lambda = {:#?}", lambda);
 
             // Update barrier parameter
             let duality_gap = (a * x - b).dot(&lambda) / (N as Float);
             mu = 0.5 * duality_gap;
-            println!("s = {:#?}", a * x - b);
-            println!("mu = {:.6}", mu);
         }
 
         Solution {

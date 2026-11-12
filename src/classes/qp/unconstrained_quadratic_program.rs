@@ -35,7 +35,7 @@ impl<const N: usize> MathematicalProgram<N, 0, 0> for UnconstrainedQuadraticProg
         // Initial search direction and gradient
         let mut p: SVector<Float, N> = self.vector;
         let mut g: SVector<Float, N> = self.vector;
-        if g.max().abs() >= config.primal_gradient_tolerance {
+        if g.abs().max() >= config.primal_gradient_tolerance {
             // Step size
             let mut a: Float = -g.dot(&p) / p.dot(&(self.matrix * p));
             
@@ -46,7 +46,7 @@ impl<const N: usize> MathematicalProgram<N, 0, 0> for UnconstrainedQuadraticProg
                 // Calculate gradient direction and step direction
                 let ap = self.matrix * p;
                 g = self.matrix * x + self.vector;
-                if g.max().abs() < config.primal_gradient_tolerance {
+                if g.abs().max() < config.primal_gradient_tolerance {
                     break;
                 }
                 p = g - (g.dot(&ap) / p.dot(&ap)) * p;

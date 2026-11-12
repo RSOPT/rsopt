@@ -26,3 +26,27 @@ pub struct Solution<const N: usize, const E: usize, const I: usize> {
     /// Nonnegative dual variables.
     pub inequality_dual: Option<SVector<Float, I>>,
 }
+
+impl<const N: usize, const E: usize, const I: usize> Solution<N, E, I> {
+    #[inline(always)]
+    /// Construct an infeasible solution.
+    pub fn infeasible() -> Self {
+        Self {
+            status: Status::Infeasible,
+            primal: None,
+            equality_dual: None,
+            inequality_dual: None,
+        }
+    }
+
+    #[inline(always)]
+    /// Construct an unbounded solution.
+    pub fn unbounded() -> Self {
+        Self {
+            status: Status::Unbounded,
+            primal: None,
+            equality_dual: None,
+            inequality_dual: None,
+        }
+    }
+}
