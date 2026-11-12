@@ -10,11 +10,9 @@ use crate::{Float, MathematicalProgram, Solution, SolverConfig, Status};
 /// For more information on the conjugate gradient method, refer to the section
 /// titled "Unconstrained Quadratic Programs" in the technical report.
 pub struct UnconstrainedQuadraticProgram<const N: usize> {
-    #[allow(dead_code)]
     /// PSD matrix `A`.
     matrix: SMatrix<Float, N, N>,
 
-    #[allow(dead_code)]
     /// Vector `b`.
     vector: SVector<Float, N>,
 }
@@ -29,15 +27,15 @@ impl<const N: usize> UnconstrainedQuadraticProgram<N> {
     }
 }
 
-impl<const N: usize> MathematicalProgram<N, 0> for UnconstrainedQuadraticProgram<N> {
-    fn solve(&self, config: SolverConfig) -> Solution<N, 0> {
+impl<const N: usize> MathematicalProgram<N, 0, 0> for UnconstrainedQuadraticProgram<N> {
+    fn solve(&self, config: SolverConfig) -> Solution<N, 0, 0> {
         // Solution
         let mut x: SVector<Float, N> = SVector::zeros();
 
         // Initial search direction and gradient
         let mut p: SVector<Float, N> = self.vector;
         let mut g: SVector<Float, N> = self.vector;
-        if g.max().abs() >= config.primal_gradient_tolerance {
+        if g.abs().max() >= config.primal_gradient_tolerance {
             // Step size
             let mut a: Float = -g.dot(&p) / p.dot(&(self.matrix * p));
             
@@ -48,7 +46,7 @@ impl<const N: usize> MathematicalProgram<N, 0> for UnconstrainedQuadraticProgram
                 // Calculate gradient direction and step direction
                 let ap = self.matrix * p;
                 g = self.matrix * x + self.vector;
-                if g.max().abs() < config.primal_gradient_tolerance {
+                if g.abs().max() < config.primal_gradient_tolerance {
                     break;
                 }
                 p = g - (g.dot(&ap) / p.dot(&ap)) * p;
@@ -65,7 +63,8 @@ impl<const N: usize> MathematicalProgram<N, 0> for UnconstrainedQuadraticProgram
         Solution {
             status: Status::Optimal,
             primal: Some (x),
-            dual: None,
+            equality_dual: None,
+            inequality_dual: None,
         }
     }
 }

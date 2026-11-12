@@ -58,7 +58,127 @@
 	
 	\chapter{Linear Programs}
 	
-	TODO
+	\textbf{Linear programs} (\texttt{LinearProgram<N, E, I>}) are convex programs of the form
+	
+	\begin{align}
+		\min_{x \in \mathbb{R}^n} \; & c^\top x \label{eq:lp} \\
+		\text{subject to} \; & A x \succeq b \\
+		& E x = d \\
+		& x \succeq 0
+	\end{align}
+	
+	where \( c \in \mathbb{R}^n \), \( A \in \mathbb{R}^{i \times n} \), \( b \in \mathbb{R}^i \), \( E \in \mathbb{R}^{e \times n} \), and \( d \in \mathbb{R}^e \).  As of this writing, the RSOPT project implements only the \textbf{primal-dual interior point method} (PDIPM) for solving linear programs.  We acknowledge that the simplex method is a very common method for solving linear programs that converges very well in practice---however, we have selected PDIPM for its polynomial-time convergence guarantee.  We begin by writing the LP (\ref{eq:lp}) as an optimization over the relevant Lagrangian.
+	
+	\begin{align}
+		\min_{x \in \mathbb{R}^n} \max_{\lambda \in \mathbb{R}^i, \eta \in \mathbb{R}^e} \; & c^\top x + \lambda^\top (b - Ax) + \eta^\top (d - Ex) \\
+		& x \succeq 0 \\
+		& \lambda \succeq 0
+	\end{align}
+	
+	The first-order stationarity condition associated with this problem is
+	
+	\begin{equation}
+		c - A^\top \lambda - E^\top \eta = 0,
+	\end{equation}
+	
+	the equality condition for primal feasibility is
+	
+	\begin{equation}
+		E x - d = 0,
+	\end{equation}
+	
+	and the relaxed complementary slackness condition is
+	
+	\begin{equation}
+		\lambda \odot (Ax - b) = \mu \mathbf{1}.
+	\end{equation}
+	
+	From these three equality conditions, we can determine a linear system for a primal update \( \Delta x \), a dual update \( \Delta \lambda \), and a new Lagrange multiplier vector \( \eta \).  We will then apply these updates to iterates \( x_k, \lambda_k \) to obtain iterates \( x_{k+1}, \lambda_{k+1} \).
+	
+	\begin{align}
+		c - A^\top (\lambda + \Delta \lambda) - E^\top \eta &= 0 \\
+		E (x + \Delta x) &= d \\
+		(\lambda + \Delta \lambda) \odot \left( A(x + \Delta x) - b \right) &= \mu \mathbf{1}
+	\end{align}
+	
+	Expanding, we drop the term \( \Delta \lambda \odot \Delta x \) and determine a KKT system in its canonical form.
+	
+	\begin{equation}
+		\begin{bmatrix}
+			0 & E^\top & A^\top \\
+			E & 0 & 0 \\
+			\mathrm{diag}(\lambda) A & 0 & \mathrm{diag}(Ax - b)
+		\end{bmatrix}
+		\begin{bmatrix}
+			\Delta x \\
+			\eta \\
+			\Delta \lambda
+		\end{bmatrix}
+		=
+		\begin{bmatrix}
+			c - A^\top \lambda \\
+			d - E x \\
+			\mu \mathbf{1} - \lambda \odot (A x - b)
+		\end{bmatrix}
+	\end{equation}
+	
+	We write the components of the vector on the right-hand side of this relation as \( p \), \( q \), and \( r \) for brevity.  We also define the following matrices.
+	
+	\begin{align}
+		Z &:= A^\top \mathrm{diag}(A x - b)^{-1} \mathrm{diag}(\lambda) A \\
+		Y &:= \left(Z + \delta I \right)^{-1}
+	\end{align}
+	
+	Here, \( \delta \) is a small positive constant chosen by the user which regularizes \( Z \) and enables it to be inverted when it is rank-deficient.  Solving this linear system analytically, we have the following.
+	
+	\begin{align}
+		\eta &= \left( E Y E^\top \right)^{-1} \left( q + E Y [ p - A^\top \mathrm{diag}(A x - b)^{-1} r ] \right) \\
+		\Delta x &= Y \left( E^\top \eta + A^\top \mathrm{diag}(A x - b)^{-1} r - p \right) \\
+		\Delta \lambda &= \mathrm{diag}(A x - b)^{-1} \left( r - \lambda \odot A \Delta x \right)
+	\end{align}
+	
+	To update \( x_{k+1} \) and \( \lambda_{k+1} \), we combine two techniques to ensure that iterates remain feasible.  The first is a \textit{fraction-to-the-boundary} technique that determines the maximum possible primal step size \( \alpha \) and the maximum possible dual step size \( \beta \).  For each \( x_i \) and \( \lambda_i \), we impose \( \alpha \le 1 \), \( \beta \le 1 \) as well as the constraints
+	
+	\begin{align}
+		\alpha &\le -\frac{\tau x_i}{\Delta x_i} \; \text{ where } \Delta x \le 0 , \\
+		\alpha &\le -\frac{\tau A x_i}{A \Delta x_i} \; \text{ where } A \Delta x_i \le 0 , \\
+		\beta &\le -\frac{\tau \lambda_i}{A \Delta \lambda_i} \; \text{ where } \Delta \lambda_i \le 0 .
+	\end{align}
+	
+	Here, \( 0 < \tau < 1 \) is a user-specified hyperparameter.  The second technique selects the largest feasible \( \alpha, \beta \) and performs a simple line search to ensure feasibility, scaling the step sizes by user-selected \( 0 < \kappa < 1 \) on each iteration until the next iterate is strictly feasible.  Although this should not be necessary in theory, in practice this improves the numerical stability of the solver, as ensuring strict feasibility is critical throughout PDIPM.  Subsequent iterates are computed using
+	
+	\begin{align}
+		x_{k+1} &= x_k + \alpha \Delta x_k \\
+		\lambda_{k+1} &= \lambda_k + \beta \Delta \lambda_k
+	\end{align}
+	
+	and the algorithm continues until a stopping condition is reached.  In Algorithm \ref{alg:pdipm-lp} we summarize PDIPM for a linear program.
+	
+	\begin{algorithm}[htbp!]
+		\caption{Primal-Dual Interior Point Method for Linear Programming}
+		\label{alg:pdipm-lp}
+		\begin{algorithmic}[1]
+			\Require \( c, A, b, E, d \)
+			\State \( x \gets \mathbf{1} \)
+			\State \( \lambda \gets \mathbf{1} \)
+			\State \( \eta \gets \mathbf{0} \)
+			\While{ stopping condition not reached }
+				\State \( Z \gets A^\top \mathrm{diag}(A x - b)^{-1} \mathrm{diag}(\lambda) A \)
+				\State \( Y \gets \left(Z + \delta I \right)^{-1} \)
+ 				\State \( \eta \gets \left( E Y E^\top \right)^{-1} \left( q + E Y [ p - A^\top \mathrm{diag}(A x - b)^{-1} r ] \right) \)
+ 				\State \( \Delta x \gets Y \left( E^\top \eta + A^\top \mathrm{diag}(A x - b)^{-1} r - p \right) \)
+ 				\State \( \Delta \lambda \gets \mathrm{diag}(A x - b)^{-1} \left( r - \lambda \odot A \Delta x \right) \)
+ 				\State compute maximum \( \alpha, \beta \)
+ 				\While{ next iterate infeasible }
+ 					\State \( \alpha \gets \kappa \alpha \)
+ 					\State \( \beta \gets \kappa \beta \) 
+ 				\EndWhile
+ 				\State \( x \gets x + \alpha \Delta x \)
+ 				\State \( \lambda \gets \lambda + \beta \Delta \lambda \)
+			\EndWhile \\
+			\Return \( x, \lambda, \eta \)
+		\end{algorithmic}
+	\end{algorithm}
 	
 	\chapter{Quadratic Programs}
 	

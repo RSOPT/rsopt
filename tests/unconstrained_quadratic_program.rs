@@ -36,7 +36,8 @@ fn solve_trivial_2d_qp() {
         solution.primal,
         Some (vector![ 0.0, 0.0 ]),
     );
-    assert!(solution.dual.is_none());
+    assert!(solution.equality_dual.is_none());
+    assert!(solution.inequality_dual.is_none());
 }
 
 #[test]
@@ -61,7 +62,8 @@ fn solve_trivial_3d_qp() {
         solution.primal,
         Some (vector![ -1.0, 2.0, -3.0 ]),
     );
-    assert!(solution.dual.is_none());
+    assert!(solution.equality_dual.is_none());
+    assert!(solution.inequality_dual.is_none());
 }
 
 #[test]
@@ -85,5 +87,6 @@ fn solve_2d_qp() {
         solution.primal,
         Some (vector![ 2.0, 0.0 ]),
     );
-    assert!(solution.dual.is_none());
+    assert!(solution.equality_dual.is_none());
+    assert!(solution.inequality_dual.is_none());
 }
