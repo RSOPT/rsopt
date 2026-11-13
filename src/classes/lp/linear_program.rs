@@ -67,7 +67,7 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
         let c = self.objective_vector;
 
         // Barrier parameter
-        let mut mu = 10.0;
+        let mut mu = config.initial_barrier_parameter;
 
         // Vector of ones
         let mut ones = SVector::<Float, I>::zeros();
@@ -87,6 +87,9 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
         for _ in 0..config.major_iteration_limit {
             // Inequality residual
             let s = a * x - b;
+
+            println!("mu: {:.6}", mu);
+            println!("s: {:#?}", e * x);
 
             // Compute divisions
             let s_inverse: SVector<Float, I> = ones.component_div(&(s + config.regularization * ones));
@@ -120,6 +123,11 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
 
             // Calculate dual update direction
             let dlambda = SMatrix::from_diagonal(&s_inverse) * (r - lambda.component_mul(&(a * x)));
+
+            println!("x: {:#?}", x);
+            println!("dx: {:#?}", dx);
+            println!("dl: {:#?}", dlambda);
+            println!("eta: {:#?}", eta);
 
             // Calculate maximum update sizes
             let tau = config.boundary_coefficient;
@@ -199,6 +207,7 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             // Update barrier parameter
             let duality_gap = (a * x - b).dot(&lambda) / (N as Float);
             mu = 0.5 * duality_gap;
+            println!("duality gap: {:.6}", duality_gap);
 
             // Save L1 norm of update
             last_primal_update_norm = primal_alpha * dx.abs().max();

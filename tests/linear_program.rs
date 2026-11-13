@@ -44,7 +44,6 @@ fn solve_trivial_lp() {
     let result = lp.solve(config);
 
     assert_eq!(result.status, Status::Optimal);
-    println!("{:#?}", result.primal);
     assert!(result.primal.is_some());
     assert!(appxeq(result.primal.unwrap(), vector![0.0, 0.0]));
 }
@@ -179,4 +178,59 @@ fn solve_2d_unbounded_lp() {
     let result = lp.solve(config);
 
     assert_eq!(result.status, Status::Unbounded);
+}
+
+#[test]
+fn solve_spp_lp() {
+    // Construct LP
+    let mut d = SVector::<Float, 22>::zeros();
+    d.fill(1.0);
+    let lp = LinearProgram::<22, 6, 22>::new(
+        vector![
+            1.0, 4.0, 6.0, 3.0, 2.0, 5.0, 2.0, 4.0, 7.0, 2.0, 6.0,
+            1.0, 4.0, 6.0, 3.0, 2.0, 5.0, 2.0, 4.0, 7.0, 2.0, 6.0,
+        ],
+        //  AB   AC   BE   BD   CD   CF   DE   DF   EG   EF   FG
+        matrix![
+            1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            -1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+
+            -1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            1.0, 0.0, -1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+
+            0.0, -1.0, 0.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+            0.0, 1.0, 0.0, 0.0, -1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0;
+
+            0.0, 0.0, 0.0, -1.0, -1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0,
+            0.0, 0.0, 0.0, 1.0, 1.0, 0.0, -1.0, -1.0, 0.0, 0.0, 0.0;
+
+        //  AB   AC   BE   BD   CD   CF   DE   DF   EG   EF   FG
+
+            0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 1.0, 0.0,
+            0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, -1.0, 0.0;
+
+            0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, -1.0, 0.0, -1.0, 1.0,
+            0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, -1.0;
+
+//             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, -1.0,
+//             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0
+        ],
+        vector![
+            1.0, 0.0, 0.0, 0.0, 0.0, 0.0, // -1.0
+        ],
+        SMatrix::<Float, 22, 22>::identity(),
+        SVector::<Float, 22>::zeros(),
+    );
+
+    // Define configuration
+    let mut config = SolverConfig::default();
+    config.minor_iteration_limit = 40;
+    config.initial_barrier_parameter = 1.00;
+
+    // Solve
+    let result = lp.solve(config);
+
+    assert_eq!(result.status, Status::Optimal);
+
+    dbg!(result.primal);
 }
