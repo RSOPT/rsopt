@@ -78,7 +78,7 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
         let mut x = SVector::<Float, N>::zeros();
         let mut lambda = SVector::<Float, I>::zeros();
         let mut eta = SVector::<Float, E>::zeros();
-        x.fill(1.0);
+        x.fill(0.1);
         lambda.fill(1.0);
 
         // Last primal update L1 norm
@@ -87,9 +87,6 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
         for _ in 0..config.major_iteration_limit {
             // Inequality residual
             let s = a * x - b;
-
-            println!("mu: {:.6}", mu);
-            println!("s: {:#?}", e * x);
 
             // Compute divisions
             let s_inverse: SVector<Float, I> = ones.component_div(&(s + config.regularization * ones));
@@ -124,22 +121,10 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             // Calculate dual update direction
             let dlambda = SMatrix::from_diagonal(&s_inverse) * (r - lambda.component_mul(&(a * x)));
 
-            println!("x: {:#?}", x);
-            println!("dx: {:#?}", dx);
-            println!("dl: {:#?}", dlambda);
-            println!("eta: {:#?}", eta);
-
             // Calculate maximum update sizes
             let tau = config.boundary_coefficient;
-            let primal_alphas = -tau * x.component_div(&dx);
             let dual_alphas = -tau * lambda.component_div(&dlambda);
             let mut primal_alpha = 1.0;
-            for a in &primal_alphas {
-                // Check that `x` will not go negative
-                if *a > 0.0 && *a < primal_alpha {
-                    primal_alpha = *a;
-                }
-            }
             for (row, val) in a.row_iter().zip(&b) {
                 // Check that `Ax - b` will not go negative
                 let row: SVector<Float, N> = row.transpose();
@@ -161,14 +146,11 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             for _ in 0..config.minor_iteration_limit {
                 let new_x = x + primal_alpha * dx;
 
-                // Check nonnegativity
-                let check_sign = new_x.min() >= 0.0;
-
                 // Check user-specified inequality constraints
                 let s = a * new_x - b;
                 let check_ieq = s.min() >= 0.0;
 
-                if check_sign && check_ieq {
+                if check_ieq {
                     ls_flag = true;
                     break;
                 } else {
@@ -205,9 +187,8 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             }
 
             // Update barrier parameter
-            let duality_gap = (a * x - b).dot(&lambda) / (N as Float);
+            let duality_gap = (a * x - b).dot(&lambda) / (I as Float);
             mu = 0.5 * duality_gap;
-            println!("duality gap: {:.6}", duality_gap);
 
             // Save L1 norm of update
             last_primal_update_norm = primal_alpha * dx.abs().max();

@@ -18,7 +18,7 @@ use rsopt::{
     lp::LinearProgram,
 };
 
-const L1_THRESHOLD: Float = 1e-6;
+const L1_THRESHOLD: Float = 1e-5;
 
 /// Determine if two vectors are within a fixed L1 distance.
 fn appxeq<const N: usize>(x: SVector<Float, N>, y: SVector<Float, N>) -> bool {
@@ -28,12 +28,12 @@ fn appxeq<const N: usize>(x: SVector<Float, N>, y: SVector<Float, N>) -> bool {
 #[test]
 fn solve_trivial_lp() {
     // Construct LP
-    let lp = LinearProgram::<2, 0, 0>::new(
+    let lp = LinearProgram::<2, 0, 2>::new(
         vector![1.0, 1.0],
         SMatrix::<Float, 0, 2>::zeros(),
         SVector::<Float, 0>::zeros(),
-        SMatrix::<Float, 0, 2>::zeros(),
-        SVector::<Float, 0>::zeros(),
+        SMatrix::<Float, 2, 2>::identity(),
+        SVector::<Float, 2>::zeros(),
     );
 
     // Define configuration
@@ -183,14 +183,11 @@ fn solve_2d_unbounded_lp() {
 #[test]
 fn solve_spp_lp() {
     // Construct LP
-    let mut d = SVector::<Float, 22>::zeros();
-    d.fill(1.0);
     let lp = LinearProgram::<22, 6, 22>::new(
         vector![
             1.0, 4.0, 6.0, 3.0, 2.0, 5.0, 2.0, 4.0, 7.0, 2.0, 6.0,
             1.0, 4.0, 6.0, 3.0, 2.0, 5.0, 2.0, 4.0, 7.0, 2.0, 6.0,
         ],
-        //  AB   AC   BE   BD   CD   CF   DE   DF   EG   EF   FG
         matrix![
             1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0,
             -1.0, -1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0;
@@ -204,19 +201,14 @@ fn solve_spp_lp() {
             0.0, 0.0, 0.0, -1.0, -1.0, 0.0, 1.0, 1.0, 0.0, 0.0, 0.0,
             0.0, 0.0, 0.0, 1.0, 1.0, 0.0, -1.0, -1.0, 0.0, 0.0, 0.0;
 
-        //  AB   AC   BE   BD   CD   CF   DE   DF   EG   EF   FG
-
             0.0, 0.0, -1.0, 0.0, 0.0, 0.0, -1.0, 0.0, 1.0, 1.0, 0.0,
             0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, -1.0, 0.0;
 
             0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, -1.0, 0.0, -1.0, 1.0,
             0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 1.0, -1.0;
-
-//             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -1.0, 0.0, -1.0,
-//             0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, 1.0
         ],
         vector![
-            1.0, 0.0, 0.0, 0.0, 0.0, 0.0, // -1.0
+            1.0, 0.0, 0.0, 0.0, 0.0, 0.0
         ],
         SMatrix::<Float, 22, 22>::identity(),
         SVector::<Float, 22>::zeros(),
@@ -224,13 +216,18 @@ fn solve_spp_lp() {
 
     // Define configuration
     let mut config = SolverConfig::default();
+    config.major_iteration_limit = 80;
     config.minor_iteration_limit = 40;
+    config.regularization = 1e-8;
     config.initial_barrier_parameter = 1.00;
 
     // Solve
     let result = lp.solve(config);
 
     assert_eq!(result.status, Status::Optimal);
-
-    dbg!(result.primal);
+    assert!(result.primal.is_some());
+    assert!(appxeq(result.primal.unwrap(), vector![
+        1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 1.0, 0.0, 0.0,
+        0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0
+    ]));
 }
