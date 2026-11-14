@@ -298,4 +298,16 @@
 	\section{Inequality-Constrained Quadratic Programs}
 	
 	TODO
+	
+	\chapter{Semidefinite Programs}
+	
+	\textbf{Semidefinite programs} (\texttt{SemidefiniteProgram<N, E>}) are convex programs of the form
+	
+	\begin{align}
+		\min_{X \in \mathbb{R}^{n \times n}} \; & \langle C, X \rangle \\
+		& \langle A_i, X \rangle = b_i \\
+		& X \succeq 0
+	\end{align}
+	
+	
 \end{document}

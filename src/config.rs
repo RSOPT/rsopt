@@ -27,6 +27,9 @@ pub struct SolverConfig {
 
     /// Primal update L1 norm threshold.
     pub primal_update_norm_threshold: Float,
+
+    /// Initial barrier parameter.
+    pub initial_barrier_parameter: Float,
 }
 
 impl Default for SolverConfig {
@@ -39,6 +42,7 @@ impl Default for SolverConfig {
             boundary_coefficient: 0.995,
             line_search_fraction: 0.5,
             primal_update_norm_threshold: 1e-8,
+            initial_barrier_parameter: 10.0,
         }
     }
 }
