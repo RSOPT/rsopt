@@ -16,7 +16,7 @@
 //! parameterized convex programs so that RSOPT can be increasingly
 //! useful to the research community.
 
-// #![no_std]
+#![no_std]
 #![deny(warnings)]
 #![deny(missing_docs)]
 

@@ -67,12 +67,13 @@
 		& x \succeq 0
 	\end{align}
 	
-	where \( c \in \mathbb{R}^n \), \( A \in \mathbb{R}^{i \times n} \), \( b \in \mathbb{R}^i \), \( E \in \mathbb{R}^{e \times n} \), and \( d \in \mathbb{R}^e \).  As of this writing, the RSOPT project implements only the \textbf{primal-dual interior point method} (PDIPM) for solving linear programs.  We acknowledge that the simplex method is a very common method for solving linear programs that converges very well in practice---however, we have selected PDIPM for its polynomial-time convergence guarantee.  We begin by writing the LP (\ref{eq:lp}) as an optimization over the relevant Lagrangian.
+	where \( c \in \mathbb{R}^n \), \( A \in \mathbb{R}^{i \times n} \), \( b \in \mathbb{R}^i \), \( E \in \mathbb{R}^{e \times n} \), and \( d \in \mathbb{R}^e \).  As of this writing, the RSOPT project implements only the \textbf{primal-dual interior point method} (PDIPM) for solving linear programs.  We acknowledge that the simplex method is a very common method for solving linear programs that converges very well in practice---however, we have selected PDIPM for its polynomial-time convergence guarantee.  We begin by introducing slack variable \( s \in \mathbb{R}^n \) and writing the LP (\ref{eq:lp}) as an optimization over the relevant Lagrangian.
 	
 	\begin{align}
-		\min_{x \in \mathbb{R}^n} \max_{\lambda \in \mathbb{R}^i, \eta \in \mathbb{R}^e} \; & c^\top x + \lambda^\top (b - Ax) + \eta^\top (d - Ex) \\
+		\min_{x, s \in \mathbb{R}^n} \max_{\lambda \in \mathbb{R}^i, \eta \in \mathbb{R}^e} \; & c^\top x + \eta^\top (d - Ex) + \lambda^\top (s + b - Ax) - \lambda^\top s \\
 		& x \succeq 0 \\
-		& \lambda \succeq 0
+		& \lambda \succeq 0 \\
+		& s \succeq 0
 	\end{align}
 	
 	The first-order stationarity condition associated with this problem is
@@ -90,58 +91,62 @@
 	and the relaxed complementary slackness condition is
 	
 	\begin{equation}
-		\lambda \odot (Ax - b) = \mu \mathbf{1}.
+		\lambda \odot s = \mu \mathbf{1}.
 	\end{equation}
 	
-	From these three equality conditions, we can determine a linear system for a primal update \( \Delta x \), a dual update \( \Delta \lambda \), and a new Lagrange multiplier vector \( \eta \).  We will then apply these updates to iterates \( x_k, \lambda_k \) to obtain iterates \( x_{k+1}, \lambda_{k+1} \).
+	From these three equality conditions, we can determine a linear system for a primal update \( \Delta x \), a slack update \( \Delta s \), a dual update \( \Delta \lambda \), and a new Lagrange multiplier vector \( \eta \).  We will then apply these updates to iterates \( x_k, s_k, \lambda_k \) to obtain iterates \( x_{k+1}, s_{k+1}, \lambda_{k+1} \).
 	
 	\begin{align}
 		c - A^\top (\lambda + \Delta \lambda) - E^\top \eta &= 0 \\
+		A(x + \Delta x) - b - (s + \Delta s) &= 0 \\
 		E (x + \Delta x) &= d \\
-		(\lambda + \Delta \lambda) \odot \left( A(x + \Delta x) - b \right) &= \mu \mathbf{1}
+		(\lambda + \Delta \lambda) \odot \left( s + \Delta s \right) &= \mu \mathbf{1}
 	\end{align}
 	
-	Expanding, we drop the term \( \Delta \lambda \odot \Delta x \) and determine a KKT system in its canonical form.
+	Expanding, we drop the term \( \Delta \lambda \odot \Delta s \) and determine a KKT system in its canonical form.
 	
 	\begin{equation}
 		\begin{bmatrix}
-			0 & E^\top & A^\top \\
-			E & 0 & 0 \\
-			\mathrm{diag}(\lambda) A & 0 & \mathrm{diag}(Ax - b)
+			0 & 0 & E^\top & A^\top \\
+			A & -I & 0 & 0 \\
+			E & 0 & 0 & 0 \\
+			0 & \mathrm{diag}(\lambda) & 0 & \mathrm{diag}(s)
 		\end{bmatrix}
 		\begin{bmatrix}
 			\Delta x \\
+			\Delta s \\
 			\eta \\
 			\Delta \lambda
 		\end{bmatrix}
 		=
 		\begin{bmatrix}
 			c - A^\top \lambda \\
+			s + b - A x \\
 			d - E x \\
-			\mu \mathbf{1} - \lambda \odot (A x - b)
+			\mu \mathbf{1} - \lambda \odot s
 		\end{bmatrix}
 	\end{equation}
 	
-	We write the components of the vector on the right-hand side of this relation as \( p \), \( q \), and \( r \) for brevity.  We also define the following matrices.
+	We write the components of the vector on the right-hand side of this relation as \( p \), \( q \), \( r \), and \( t \) for brevity.  We also define the following matrices.
 	
 	\begin{align}
-		Z &:= A^\top \mathrm{diag}(A x - b)^{-1} \mathrm{diag}(\lambda) A \\
+		Z &:= A^\top \mathrm{diag}(s)^{-1} \mathrm{diag}(\lambda) A \\
 		Y &:= \left(Z + \delta I \right)^{-1}
 	\end{align}
 	
-	Here, \( \delta \) is a small positive constant chosen by the user which regularizes \( Z \) and enables it to be inverted when it is rank-deficient.  Solving this linear system analytically, we have the following.
+	Here, \( \delta \) is a small positive constant chosen by the user which regularizes \( Z \) and ensures numerical stability when \( Z \) is rank-deficient.  Solving this linear system analytically, we have the following.
 	
 	\begin{align}
-		\eta &= \left( E Y E^\top \right)^{-1} \left( q + E Y [ p - A^\top \mathrm{diag}(A x - b)^{-1} r ] \right) \\
-		\Delta x &= Y \left( E^\top \eta + A^\top \mathrm{diag}(A x - b)^{-1} r - p \right) \\
-		\Delta \lambda &= \mathrm{diag}(A x - b)^{-1} \left( r - \lambda \odot A \Delta x \right)
+		\eta &= \left( E Y E^\top \right)^{-1} \left( r - Y \left[ A^\top \mathrm{diag}(s)^{-1} \mathrm{diag}(\lambda) q + A^\top \mathrm{diag}(s)^{-1} t - p \right] \right) \\
+		\Delta x &= Y \left( E^\top \eta + A^\top \mathrm{diag}(s)^{-1} \mathrm{diag}(\lambda) q + A^\top \mathrm{diag}(s)^{-1} t - p \right) \\
+		\Delta s &= A \Delta x - q \\
+		\Delta \lambda &= \mathrm{diag}(s)^{-1} \left( t - \lambda \odot s \right)
 	\end{align}
 	
-	To update \( x_{k+1} \) and \( \lambda_{k+1} \), we combine two techniques to ensure that iterates remain feasible.  The first is a \textit{fraction-to-the-boundary} technique that determines the maximum possible primal step size \( \alpha \) and the maximum possible dual step size \( \beta \).  For each \( x_i \) and \( \lambda_i \), we impose \( \alpha \le 1 \), \( \beta \le 1 \) as well as the constraints
+	To update \( x_{k+1} \), \( s_{k+1} \), and \( \lambda_{k+1} \), we combine two techniques to ensure that iterates remain feasible.  The first is a \textit{fraction-to-the-boundary} technique that determines the maximum possible primal step size \( \alpha \) and the maximum possible dual step size \( \beta \).  For each \( s_i, \lambda_i \), we impose \( \alpha \le 1 \), \( \beta \le 1 \) as well as the constraints
 	
 	\begin{align}
-		\alpha &\le -\frac{\tau x_i}{\Delta x_i} \; \text{ where } \Delta x \le 0 , \\
-		\alpha &\le -\frac{\tau A x_i}{A \Delta x_i} \; \text{ where } A \Delta x_i \le 0 , \\
+		\alpha &\le -\frac{\tau s_i}{\Delta s_i} \; \text{ where } \Delta s_i \le 0 , \\
 		\beta &\le -\frac{\tau \lambda_i}{A \Delta \lambda_i} \; \text{ where } \Delta \lambda_i \le 0 .
 	\end{align}
 	
@@ -149,32 +154,36 @@
 	
 	\begin{align}
 		x_{k+1} &= x_k + \alpha \Delta x_k \\
+		s_{k+1} &= s_k + \alpha \Delta s_k \\
 		\lambda_{k+1} &= \lambda_k + \beta \Delta \lambda_k
 	\end{align}
 	
-	and the algorithm continues until a stopping condition is reached.  In Algorithm \ref{alg:pdipm-lp} we summarize PDIPM for a linear program.
+	and the algorithm continues until a stopping condition is reached.  In Algorithm \ref{alg:pdipm-lp} we summarize PDIPM for a linear program.  We use \( 0 < \gamma < 1 \) to indicate a barrier scaling parameter, ensuring the duality gap \( \lambda^\top s \) closes successively and iterates approach the optimizer.
 	
 	\begin{algorithm}[htbp!]
 		\caption{Primal-Dual Interior Point Method for Linear Programming}
 		\label{alg:pdipm-lp}
 		\begin{algorithmic}[1]
 			\Require \( c, A, b, E, d \)
-			\State \( x \gets \mathbf{1} \)
+			\State \( x \gets \mathbf{0} \)
+			\State \( s \gets \mathbf{1} \)
 			\State \( \lambda \gets \mathbf{1} \)
 			\State \( \eta \gets \mathbf{0} \)
 			\While{ stopping condition not reached }
-				\State \( Z \gets A^\top \mathrm{diag}(A x - b)^{-1} \mathrm{diag}(\lambda) A \)
+				\State \( Z \gets A^\top \mathrm{diag}(s)^{-1} \mathrm{diag}(\lambda) A \)
 				\State \( Y \gets \left(Z + \delta I \right)^{-1} \)
- 				\State \( \eta \gets \left( E Y E^\top \right)^{-1} \left( q + E Y [ p - A^\top \mathrm{diag}(A x - b)^{-1} r ] \right) \)
- 				\State \( \Delta x \gets Y \left( E^\top \eta + A^\top \mathrm{diag}(A x - b)^{-1} r - p \right) \)
- 				\State \( \Delta \lambda \gets \mathrm{diag}(A x - b)^{-1} \left( r - \lambda \odot A \Delta x \right) \)
+ 				\State \( \eta \gets \left( E Y E^\top \right)^{-1} \left( r - E Y [ A^\top \mathrm{diag}(s)^{-1} \mathrm{diag}(\lambda) q + A^\top \mathrm{diag}(s)^{-1} t - p ] \right) \)
+ 				\State \( \Delta x \gets Y \left( E^\top \eta + A^\top \mathrm{diag}(s)^{-1} \mathrm{diag}(\lambda) q + A^\top \mathrm{diag}(s)^{-1} t - p \right) \)
+ 				\State \( \Delta \lambda \gets \mathrm{diag}(s)^{-1} \left( t - \lambda \odot s \right) \)
  				\State compute maximum \( \alpha, \beta \)
  				\While{ next iterate infeasible }
  					\State \( \alpha \gets \kappa \alpha \)
  					\State \( \beta \gets \kappa \beta \) 
  				\EndWhile
  				\State \( x \gets x + \alpha \Delta x \)
+ 				\State \( s \gets s + \alpha \Delta s \)
  				\State \( \lambda \gets \lambda + \beta \Delta \lambda \)
+ 				\State \( \mu \gets \gamma \lambda^\top s / i \)
 			\EndWhile \\
 			\Return \( x, \lambda, \eta \)
 		\end{algorithmic}
@@ -298,4 +307,16 @@
 	\section{Inequality-Constrained Quadratic Programs}
 	
 	TODO
+	
+	\chapter{Semidefinite Programs}
+	
+	\textbf{Semidefinite programs} (\texttt{SemidefiniteProgram<N, E>}) are convex programs of the form
+	
+	\begin{align}
+		\min_{X \in \mathbb{R}^{n \times n}} \; & \langle C, X \rangle \\
+		& \langle A_i, X \rangle = b_i \\
+		& X \succeq 0
+	\end{align}
+	
+	
 \end{document}

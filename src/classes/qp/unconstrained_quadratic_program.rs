@@ -63,6 +63,7 @@ impl<const N: usize> MathematicalProgram<N, 0, 0> for UnconstrainedQuadraticProg
         Solution {
             status: Status::Optimal,
             primal: Some (x),
+            slack: None,
             equality_dual: None,
             inequality_dual: None,
         }

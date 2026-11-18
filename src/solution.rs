@@ -20,6 +20,9 @@ pub struct Solution<const N: usize, const E: usize, const I: usize> {
     /// Primal variables.
     pub primal: Option<SVector<Float, N>>,
 
+    /// Slack variables.
+    pub slack: Option<SVector<Float, I>>,
+
     /// Unconstrained dual variables.
     pub equality_dual: Option<SVector<Float, E>>,
 
@@ -34,6 +37,7 @@ impl<const N: usize, const E: usize, const I: usize> Solution<N, E, I> {
         Self {
             status: Status::Infeasible,
             primal: None,
+            slack: None,
             equality_dual: None,
             inequality_dual: None,
         }
@@ -45,6 +49,7 @@ impl<const N: usize, const E: usize, const I: usize> Solution<N, E, I> {
         Self {
             status: Status::Unbounded,
             primal: None,
+            slack: None,
             equality_dual: None,
             inequality_dual: None,
         }
