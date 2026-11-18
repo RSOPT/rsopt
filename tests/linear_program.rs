@@ -219,10 +219,13 @@ fn solve_spp_lp() {
     config.major_iteration_limit = 80;
     config.minor_iteration_limit = 40;
     config.regularization = 1e-8;
-    config.initial_barrier_parameter = 1.00;
+    config.initial_barrier_parameter = 10.0;
 
     // Solve
     let result = lp.solve(config);
+
+    println!("x = {:#?}", result.primal);
+    println!("s = {:#?}", result.slack);
 
     assert_eq!(result.status, Status::Optimal);
     assert!(result.primal.is_some());

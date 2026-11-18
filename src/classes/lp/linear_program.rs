@@ -76,26 +76,25 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
         // Construct current guess for primals and duals
         // TODO improve these guesses!
         let mut x = SVector::<Float, N>::zeros();
+        let mut s = SVector::<Float, I>::zeros();
         let mut lambda = SVector::<Float, I>::zeros();
         let mut eta = SVector::<Float, E>::zeros();
-        x.fill(0.1);
-        lambda.fill(1.0);
+        s.fill(1.0);
+        lambda.fill(mu);
 
         // Last primal update L1 norm
         let mut last_primal_update_norm: Float = 1.0;
 
         for _ in 0..config.major_iteration_limit {
-            // Inequality residual
-            let s = a * x - b;
-
             // Compute divisions
             let s_inverse: SVector<Float, I> = ones.component_div(&(s + config.regularization * ones));
             let lambda_over_s = lambda.component_mul(&s_inverse);
 
             // Construct KKT residuals
             let p: SVector<Float, N> = c - a.transpose() * lambda;
-            let q: SVector<Float, E> = d - e * x;
-            let r: SVector<Float, I> = mu * ones - lambda.component_mul(&s);
+            let q: SVector<Float, I> = s + b - a * x;
+            let r: SVector<Float, E> = d - e * x;
+            let t: SVector<Float, I> = mu * ones - lambda.component_mul(&s);
 
             // Intermediate "helper" matrix
             // TODO fix unwrap
@@ -104,12 +103,13 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             let z_inverse = (z + reg).try_inverse().unwrap();
 
             // Intermediate "helper" vector
-            let y: SVector<Float, N> = a.transpose() * SMatrix::from_diagonal(&s_inverse) * r;
+            let at = a.transpose();
+            let y: SVector<Float, N> = at * SMatrix::from_diagonal(&s_inverse) * (lambda.component_mul(&q) + t);
 
             // Update dual
             let e_zinv = e * z_inverse;
             if let Some (e_zinv_e) = (e_zinv * e.transpose()).try_inverse() {
-                eta = e_zinv_e * (q + e_zinv * (p - y));
+                eta = e_zinv_e * (r - e_zinv * (y - p));
             } else {
                 // This problem is infeasible (is this biconditional?)
                 return Solution::infeasible();
@@ -117,20 +117,20 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
 
             // Calculate primal update direction
             let dx = z_inverse * (e.transpose() * eta + y - p);
+            let ds = a * dx - q;
 
             // Calculate dual update direction
-            let dlambda = SMatrix::from_diagonal(&s_inverse) * (r - lambda.component_mul(&(a * x)));
+            let dlambda = SMatrix::from_diagonal(&s_inverse) * (t - lambda.component_mul(&s));
 
             // Calculate maximum update sizes
             let tau = config.boundary_coefficient;
+            let primal_alphas = -tau * s.component_div(&ds);
             let dual_alphas = -tau * lambda.component_div(&dlambda);
             let mut primal_alpha = 1.0;
-            for (row, val) in a.row_iter().zip(&b) {
-                // Check that `Ax - b` will not go negative
-                let row: SVector<Float, N> = row.transpose();
-                let a = -tau * (row.dot(&x) - val) / row.dot(&dx);
-                if a > 0.0 && a < primal_alpha {
-                    primal_alpha = a;
+            for a in &primal_alphas {
+                // Check that `s` will not go negative
+                if *a > 0.0 && *a < primal_alpha {
+                    primal_alpha = *a;
                 }
             }
             let mut dual_alpha = 1.0;
@@ -144,13 +144,12 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             // Perform primal line search
             let mut ls_flag = false;
             for _ in 0..config.minor_iteration_limit {
-                let new_x = x + primal_alpha * dx;
+                let new_s = s + primal_alpha * ds;
 
-                // Check user-specified inequality constraints
-                let s = a * new_x - b;
-                let check_ieq = s.min() >= 0.0;
+                // Check nonnegativity
+                let check_sign = new_s.min() >= 0.0;
 
-                if check_ieq {
+                if check_sign {
                     ls_flag = true;
                     break;
                 } else {
@@ -159,6 +158,7 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             }
             if ls_flag {
                 x += primal_alpha * dx;
+                s += primal_alpha * ds;
             } else {
                 // We're right up against a constraint
                 break;
@@ -187,7 +187,7 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             }
 
             // Update barrier parameter
-            let duality_gap = (a * x - b).dot(&lambda) / (I as Float);
+            let duality_gap = s.dot(&lambda) / (I as Float);
             mu = 0.5 * duality_gap;
 
             // Save L1 norm of update
@@ -198,6 +198,7 @@ impl<const N: usize, const E: usize, const I: usize> MathematicalProgram<N, E, I
             Solution {
                 status: Status::Optimal,
                 primal: Some (x),
+                slack: Some (s),
                 equality_dual: Some (eta),
                 inequality_dual: Some (lambda),
             }
